@@ -1,5 +1,5 @@
 # DroneSim
-$$3^{th}$$ Unmanned Aerial Vehicle Intelligent Sensing Technology Competition
+3th Unmanned Aerial Vehicle Intelligent Sensing Technology Competition
 ## Development
 #### Environment
 Before you start developing, you'd better create an independent working environment.
@@ -19,6 +19,7 @@ After activate virtual environment, install all the necessary dependencies.
 pip install -r requirements.txt
 ```
 #### Directory structure
+```text
 DroneSim:
 .
 │  .gitignore
@@ -35,6 +36,7 @@ DroneSim:
 │  └─vision
 ├─docs
 └─tests
+```
 ## Usage
 **Note: We are in the process of continuous development. When the development is completed, we will provide instructions on how to use it.**
 ## Authors
