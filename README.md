@@ -1,5 +1,8 @@
 # DroneSim
+[![Documentation Status](https://readthedocs.org/projects/dronesim/badge/?version=latest)](https://dronesim.readthedocs.io/en/latest/?badge=latest)<br>
 3th Unmanned Aerial Vehicle Intelligent Sensing Technology Competition
+## Usage
+**Note: We are in the process of continuous development. When the development is completed, we will provide instructions on how to use it.**
 ## Development
 #### Environment
 Before you start developing, you'd better create an independent working environment.
@@ -18,7 +21,7 @@ After activate virtual environment, install all the necessary dependencies.
 ```bash
 pip install -r requirements.txt
 ```
-#### Directory structure
+#### Directory Structure
 ```text
 DroneSim:
 .
@@ -37,8 +40,8 @@ DroneSim:
 ├─docs
 └─tests
 ```
-## Usage
-**Note: We are in the process of continuous development. When the development is completed, we will provide instructions on how to use it.**
+#### API Docs
+View [https://dronesim.readthedocs.io/en/latest/](https://dronesim.readthedocs.io/en/latest/)
 ## Authors
 DLUT IoT Lab
 ## License
