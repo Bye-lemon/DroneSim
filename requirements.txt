@@ -1,2 +1,5 @@
 # Docs
 Sphinx==2.1.0
+
+# Deploy
+travis-encrypt==1.3.1

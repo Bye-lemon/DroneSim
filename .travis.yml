@@ -1,0 +1,13 @@
+language: python
+python: '3.7'
+install: pip install -r requirements.txt
+script: python test_docAutoGen.py
+deploy:
+  provider: pypi
+  user: Bye_lemon
+  password:
+    secure: hRhTaZ1tKOdLkcOpHQzKP0+skEPKFyIlx+dl/Fkq3U9b2MwCwkIGQbVIzIn3DipwykE1bI6fmafLHZI1zOM90ACKTSSp+09ZLSohFLDCUr4gqcsSboiNmAweDuKIEzC3hpYPEY0h5yDBTI2ZIBDpqI0CHoSKT2VnUbiYhNTLwn1HWVZTyjZyRYyo5A82fYHswYK/hCKi6gbuDELy+w0jx2mv3yiKu0B/Ba9Wngp3dYBupZTmhSR0iuh0SuprEXi6iwQ2ujBtG1jrWFQ3uncbPXMmTouqGmSRWDrujEJdpbz9mPhyRfQOttX5QpfH4yFO/1l6LtmgeltvIPlHoPDRNjK21yS/lG6RBe3SB25JkPp6pig0q3AyDIWlYVDYnorUhlBCkOsiMVTWfutNcLtDCKS4u9eNXz66O4MjzpQECoiA3YMh4bHD/FnRKq6LQ2GXF066dcE6obFLx+0RcLJM1n8P3wyQZYF3YI31ejEdQ5w6I1gXXjaK99FBbIu6TDpr5AjTXQCI1EqldeDhzccwk2LPG7FkoXPoZiTeLg2tfViIoCaIe0MVyegtv6XHHLLiDOmVJxyEjVWLeMW5BNJllrxzxPVoJAuAzpLScPhUxZkWSJoVCH45zZ9TgXRRGNdEnWtHAV6zSvgSm0LrmWoPIA+6ME7Hw8jDqFgBr4rozWI=
+  true:
+    python: 3
+    tags: true
+    branch: master

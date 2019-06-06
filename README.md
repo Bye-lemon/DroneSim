@@ -37,7 +37,9 @@ DroneSim:
 │  ├─task
 │  ├─utils
 │  └─vision
+├─bin
 ├─docs
+├─pack
 └─tests
 ```
 #### API Docs
