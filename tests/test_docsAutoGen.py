@@ -19,6 +19,7 @@ class Docs(object):
         """
         这是一个简单的函数，无输入输出。
         print("童博涵“)
+        print("闻天宇")
         """
         print("Hello, world!")
         pass
