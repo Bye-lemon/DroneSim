@@ -229,6 +229,7 @@ def checkHeight():
 
 #检测数字位置-调整过环高度
 
+
 def checkNumber():
     while(True):
         rawImageF=client.getFrontSense()
@@ -253,7 +254,7 @@ def checkNumber():
         rawImage=np.vsplit(rawImageF,5)
         rawImageU=np.add(rawImage[0],rawImage[1])
         rawImageU=np.add(rawImageU,rawImage[2])
-        rawImageD=np.delete(rawImage[4],np.arange(0,66),axis=0)
+        rawImageD=np.delete(rawImage[4],np.arange(0,90),axis=0)
         for i in rawImageU.flat:
             U+=i
         for i in rawImage[3].flat:
@@ -262,8 +263,12 @@ def checkNumber():
             D+=i
         print('U =',U,' W =',W,' D =',D)
         if U>5000:
-            client.moveByAngleThrottle(0,0,5,0,0.15)
-            time.sleep(1)
+            if U>500000:
+                client.moveByAngleThrottle(0,0,5,0,0.3)
+                time.sleep(1)
+            else:
+                client.moveByAngleThrottle(0,0,5,0,0.15)
+                time.sleep(1)
             continue
         if W<200000 or D>5000:
             client.moveByAngleThrottle(0,0,-5,0,0.15)
@@ -295,9 +300,9 @@ def getDistance():
 def adjustPositionNormally():
     while (True):
         ce = getDistance()
-        if ce < 2.5 and ce >= 2:
+        if ce < 2.5 and ce > 2:
             break
-        elif ce > 2.5:
+        elif ce >= 2.5:
             client.moveByAngleThrottle(-90, 0, 3, 0, 0.1)
             time.sleep(1)
         elif ce == 0:
@@ -305,7 +310,7 @@ def adjustPositionNormally():
             time.sleep(1)
             moveToCircle(8)
             adjustPositionHorizontally()
-        elif ce > 0 and ce < 2:
+        elif ce > 0 and ce <= 2:
             client.moveByAngleThrottle(90, 0, 3, 0, 0.1)
             time.sleep(1)
 
@@ -317,9 +322,7 @@ def circleDection():
     response = getCameraImage(0)
     rawImage = np.frombuffer(response.image_data_uint8, dtype=np.uint8)
     planets = cv2.imdecode(rawImage, cv2.IMREAD_UNCHANGED)
-    pr = cv2.imdecode(rawImage, cv2.IMREAD_UNCHANGED)
-    pb = cv2.imdecode(rawImage, cv2.IMREAD_UNCHANGED)
-    pg = cv2.imdecode(rawImage, cv2.IMREAD_UNCHANGED)
+
     planets[:, :, 0:2] = 0
     planets[np.where(planets < 200)] = 0
 
@@ -558,7 +561,7 @@ adjustDrone(High)
 saveFrontSense(8)
 print('High of number 8 =', round(
     client.getBarometerData().altitude - takeoffHigh, 4))
-moveNTimes(7)
+moveNTimes(6)
 
 # 第9
 coarseAdjustPositionVertically(0.5)
