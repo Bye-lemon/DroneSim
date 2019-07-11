@@ -3,19 +3,22 @@ from __future__ import print_function
 from .utils import *
 from .types import *
 
-import msgpackrpc #install as admin: pip install msgpack-rpc-python
-import numpy as np #pip install numpy
-import msgpack
-import time
-import math
-import logging
+import msgpackrpc
+import threading
+
+import warnings
+
+warnings.simplefilter("ignore", DeprecationWarning)
 
 
 class VehicleClient:
-    def __init__(self, ip = "", port = 41451, timeout_value = 3600):
-        if (ip == ""):
+    mutex = threading.Lock()
+
+    def __init__(self, ip="", port=41451, timeout_value=3600):
+        if ip == "":
             ip = "127.0.0.1"
-        self.client = msgpackrpc.Client(msgpackrpc.Address(ip, port), timeout = timeout_value, pack_encoding = 'utf-8', unpack_encoding = 'utf-8')
+        self.client = msgpackrpc.Client(msgpackrpc.Address(ip, port), timeout=timeout_value, pack_encoding='utf-8',
+                                        unpack_encoding='utf-8')
 
     # -----------------------------------  Common vehicle APIs ---------------------------------------------
     def reset(self):
@@ -24,78 +27,78 @@ class VehicleClient:
     def ping(self):
         return self.client.call('ping')
 
-    def getClientVersion(self):
-        return 1 # sync with C++ client
-    def getServerVersion(self):
-        return 1#self.client.call('getServerVersion')
-    def getMinRequiredServerVersion(self):
-        return 1 # sync with C++ client
-    def getMinRequiredClientVersion(self):
-        return 1#self.client.call('getMinRequiredClientVersion')
-
-# basic flight control
-    def enableApiControl(self, is_enabled):
-        return self.client.call('enableApiControl', is_enabled)
-    def isApiControlEnabled(self):
-        return self.client.call('isApiControlEnabled')
-    def armDisarm(self, arm):
-        return self.client.call('armDisarm', arm)
-
     def confirmConnection(self):
         if self.ping():
             print("Connected!")
         else:
-             print("Ping returned false!")
-        server_ver = self.getServerVersion()
-        client_ver = self.getClientVersion()
-        server_min_ver = self.getMinRequiredServerVersion()
-        client_min_ver = self.getMinRequiredClientVersion()
+            print("Ping returned false!")
 
-        ver_info = "Client Ver:" + str(client_ver) + " (Min Req: " + str(client_min_ver) + \
-              "), Server Ver:" + str(server_ver) + " (Min Req: " + str(server_min_ver) + ")"
+    # basic flight control
+    def enableApiControl(self, is_enabled):
+        return self.client.call('enableApiControl', is_enabled)
 
-        if server_ver < server_min_ver:
-            print(ver_info, file=sys.stderr)
-            print("AirSim server is of older version and not supported by this client. Please upgrade!")
-        elif client_ver < client_min_ver:
-            print(ver_info, file=sys.stderr)
-            print("AirSim client is of older version and not supported by this server. Please upgrade!")
-        else:
-            print(ver_info)
-        print('')
+    def isApiControlEnabled(self):
+        return self.client.call('isApiControlEnabled')
 
+    def armDisarm(self, arm):
+        return self.client.call('armDisarm', arm)
+
+    # init_connect
+    def connection(self):
+        self.confirmConnection()
+        self.enableApiControl(True)
+        self.armDisarm(True)
 
     # camera control
     # simGetImage returns compressed png in array of bytes
     # image_type uses one of the ImageType members
     def simGetImages(self, requests):
+        VehicleClient.mutex.acquire()
         responses_raw = self.client.call('simGetImages', requests)
-        return [ImageResponse.from_msgpack(response_raw) for response_raw in responses_raw]
-
+        tmp = [ImageResponse.from_msgpack(response_raw) for response_raw in responses_raw]
+        VehicleClient.mutex.release()
+        return tmp
 
     # sensor APIs
     def getImuData(self):
-        return ImuData.from_msgpack(self.client.call('getImudata'))
+        VehicleClient.mutex.acquire()
+        tmp = ImuData.from_msgpack(self.client.call('getImudata'))
+        VehicleClient.mutex.release()
+        return tmp
 
     def getBarometerData(self):
-        return BarometerData.from_msgpack(self.client.call('getBarometerdata'))
+        VehicleClient.mutex.acquire()
+        tmp = BarometerData.from_msgpack(self.client.call('getBarometerdata'))
+        VehicleClient.mutex.release()
+        return tmp
 
     def getMagnetometerData(self):
-        return MagnetometerData.from_msgpack(self.client.call('getMagnetometerdata'))
-
+        VehicleClient.mutex.acquire()
+        tmp = MagnetometerData.from_msgpack(self.client.call('getMagnetometerdata'))
+        VehicleClient.mutex.release()
+        return tmp
 
     # control APIs
-    def takeoff(self, max_wait_seconds = 15):
-        return self.client.call('takeoff', max_wait_seconds)
-    def land(self, max_wait_seconds = 60):
-        return self.client.call('land', max_wait_seconds)
+    def takeoff(self, max_wait_seconds=15):
+        VehicleClient.mutex.acquire()
+        tmp = self.client.call('takeoff', max_wait_seconds)
+        VehicleClient.mutex.release()
+        return tmp
+
+    def land(self, max_wait_seconds=60):
+        VehicleClient.mutex.acquire()
+        tmp = self.client.call('land', max_wait_seconds)
+        VehicleClient.mutex.release()
+        return tmp
+
     def hover(self):
-        return self.client.call('hover')
+        VehicleClient.mutex.acquire()
+        tmp = self.client.call('hover')
+        VehicleClient.mutex.release()
+        return tmp
+
     def moveByAngleThrottle(self, pitch, roll, throttle, yaw_rate, duration):
-        return self.client.call('moveByAngleThrottle', pitch, roll, throttle, yaw_rate, duration)
-
-
-
-class MultirotorClient(VehicleClient, object):
-    def __init__(self):
-        super(MultirotorClient, self).__init__()
+        VehicleClient.mutex.acquire()
+        tmp = self.client.call('moveByAngleThrottle', pitch, roll, throttle, yaw_rate, duration)
+        VehicleClient.mutex.release()
+        return tmp
