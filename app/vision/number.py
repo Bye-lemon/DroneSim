@@ -1,7 +1,3 @@
-from __future__ import print_function
-
-from .utils import *
-
 import numpy as np
 import cv2
 import pickle
@@ -133,7 +129,8 @@ class Number:
         # 获取每个键值中数据集与测试集的distance，并使键值对应distance
         for n in range(1, 10):
             for m in range(1, 3):
-                distance_sort[n - 1][m - 1] = self.distance(train_set[n][m - 1], V)
+                distance_sort[n - 1][m -
+                                     1] = self.distance(train_set[n][m - 1], V)
                 key_sort[n - 1][m - 1] = n
         distance_sort = distance_sort.flatten()
         key_sort = key_sort.flatten()
@@ -146,7 +143,8 @@ class Number:
             for j in range(0, len(distance_sort) - i):
                 if distance_sort[j] > distance_sort[j + 1]:
                     key_sort[j], key_sort[j + 1] = key_sort[j + 1], key_sort[j]
-                    distance_sort[j], distance_sort[j + 1] = distance_sort[j + 1], distance_sort[j]
+                    distance_sort[j], distance_sort[j +
+                                                    1] = distance_sort[j + 1], distance_sort[j]
         distance_sort = distance_sort.tolist()
         key_sort = key_sort.tolist()
         distance_sort = distance_sort[0:k]

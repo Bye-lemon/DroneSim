@@ -1,10 +1,10 @@
 from __future__ import print_function
 import dronesim as airsim
-from .utils import *
-from .types import *
 
-import msgpackrpc #install as admin: pip install msgpack-rpc-python
-import numpy as np #pip install numpy
+from dronesim.types import *
+
+import msgpackrpc
+import numpy as np
 import msgpack
 import time
 import math
@@ -12,8 +12,6 @@ import logging
 import numpy as np
 import cv2
 import pickle
-
-
 
 
 

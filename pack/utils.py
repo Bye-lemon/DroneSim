@@ -1,4 +1,4 @@
-import numpy as np #pip install numpy
+import numpy as np
 import math
 import time
 import sys
@@ -12,41 +12,44 @@ from .types import *
 
 def string_to_uint8_array(bstr):
     return np.fromstring(bstr, np.uint8)
-    
+
+
 def string_to_float_array(bstr):
     return np.fromstring(bstr, np.float32)
-    
+
+
 def list_to_2d_float_array(flst, width, height):
     return np.reshape(np.asarray(flst, np.float32), (height, width))
-    
+
+
 def get_pfm_array(response):
     return list_to_2d_float_array(response.image_data_float, response.width, response.height)
 
-    
+
 def get_public_fields(obj):
     return [attr for attr in dir(obj)
-                            if not (attr.startswith("_") 
-                            or inspect.isbuiltin(attr)
-                            or inspect.isfunction(attr)
-                            or inspect.ismethod(attr))]
+            if not (attr.startswith("_")
+                    or inspect.isbuiltin(attr)
+                    or inspect.isfunction(attr)
+                    or inspect.ismethod(attr))]
 
 
-    
 def to_dict(obj):
     return dict([attr, getattr(obj, attr)] for attr in get_public_fields(obj))
 
-    
+
 def to_str(obj):
     return str(to_dict(obj))
 
-    
+
 def write_file(filename, bstr):
     with open(filename, 'wb') as afile:
         afile.write(bstr)
 
 # helper method for converting getOrientation to roll/pitch/yaw
 # https:#en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
-    
+
+
 def to_eularian_angles(q):
     z = q.z_val
     y = q.y_val
@@ -74,7 +77,7 @@ def to_eularian_angles(q):
 
     return (pitch, roll, yaw)
 
-    
+
 def to_quaternion(pitch, roll, yaw):
     t0 = math.cos(yaw * 0.5)
     t1 = math.sin(yaw * 0.5)
@@ -84,17 +87,17 @@ def to_quaternion(pitch, roll, yaw):
     t5 = math.sin(pitch * 0.5)
 
     q = Quaternionr()
-    q.w_val = t0 * t2 * t4 + t1 * t3 * t5 #w
-    q.x_val = t0 * t3 * t4 - t1 * t2 * t5 #x
-    q.y_val = t0 * t2 * t5 + t1 * t3 * t4 #y
-    q.z_val = t1 * t2 * t4 - t0 * t3 * t5 #z
+    q.w_val = t0 * t2 * t4 + t1 * t3 * t5  # w
+    q.x_val = t0 * t3 * t4 - t1 * t2 * t5  # x
+    q.y_val = t0 * t2 * t5 + t1 * t3 * t4  # y
+    q.z_val = t1 * t2 * t4 - t0 * t3 * t5  # z
     return q
 
-    
-def wait_key(message = ''):
+
+def wait_key(message=''):
     ''' Wait for a key press on the console and return it. '''
     if message != '':
-        print (message)
+        print(message)
 
     result = None
     if os.name == 'nt':
@@ -118,7 +121,7 @@ def wait_key(message = ''):
 
     return result
 
-    
+
 def read_pfm(file):
     """ Read a pfm file """
     file = open(file, 'rb')
@@ -146,11 +149,11 @@ def read_pfm(file):
         raise Exception('Malformed PFM header.')
 
     scale = float(file.readline().rstrip())
-    if scale < 0: # little-endian
+    if scale < 0:  # little-endian
         endian = '<'
         scale = -scale
     else:
-        endian = '>' # big-endian
+        endian = '>'  # big-endian
 
     data = np.fromfile(file, endian + 'f')
     shape = (height, width, 3) if color else (height, width)
@@ -158,10 +161,10 @@ def read_pfm(file):
     data = np.reshape(data, shape)
     # DEY: I don't know why this was there.
     file.close()
-    
+
     return data, scale
 
-    
+
 def write_pfm(file, image, scale=1):
     """ Write a pfm file """
     file = open(file, 'wb')
@@ -171,14 +174,16 @@ def write_pfm(file, image, scale=1):
     if image.dtype.name != 'float32':
         raise Exception('Image dtype must be float32.')
 
-    if len(image.shape) == 3 and image.shape[2] == 3: # color image
+    if len(image.shape) == 3 and image.shape[2] == 3:  # color image
         color = True
-    elif len(image.shape) == 2 or len(image.shape) == 3 and image.shape[2] == 1: # grayscale
+    # grayscale
+    elif len(image.shape) == 2 or len(image.shape) == 3 and image.shape[2] == 1:
         color = False
     else:
-        raise Exception('Image must have H x W x 3, H x W x 1 or H x W dimensions.')
+        raise Exception(
+            'Image must have H x W x 3, H x W x 1 or H x W dimensions.')
 
-    file.write('PF\n'.encode('utf-8')  if color else 'Pf\n'.encode('utf-8'))
+    file.write('PF\n'.encode('utf-8') if color else 'Pf\n'.encode('utf-8'))
     temp_str = '%d %d\n' % (image.shape[1], image.shape[0])
     file.write(temp_str.encode('utf-8'))
 
@@ -192,11 +197,12 @@ def write_pfm(file, image, scale=1):
 
     image.tofile(file)
 
-    
+
 def write_png(filename, image):
     """ image must be numpy array H X W X channels
     """
-    import zlib, struct
+    import zlib
+    import struct
 
     buf = image.flatten().tobytes()
     width = image.shape[1]

@@ -4,12 +4,18 @@ from setuptools import setup
 
 setup(
     name='DroneSim',
-    version=0.2,
+    version=0.3,
     description=(
         'Yet Another Python API for SJTU Drone Contest.'
     ),
-    author='DUT Drone Lab',
-    maintainer='Yuan Yichen',
+    author='DUT Hi-AI Lab',
+    maintainer=[
+        'YiChen Yuan',
+        'Feilong Wang',
+        'Bohan Tong',
+        'Tianyu Wen',
+        'Yingping Li'
+    ],
     license='MIT License',
     packages=["pack"],
     platforms=["all"],
@@ -21,5 +27,7 @@ setup(
     install_requires=[
         'msgpack-rpc-python',
         'numpy',
+        'opencv-python>=4.1.0',
+        'opencv-contrib-python>=4.1.0'
     ],
 )
