@@ -6,5 +6,6 @@ travis-encrypt==1.3.1
 
 # Application
 DroneSim
-opencv-python>=4.1.0
-opencv-contrib-python>=4.1.0
+opencv-python
+opencv-contrib-python
+scikit-learn

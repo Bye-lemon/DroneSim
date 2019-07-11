@@ -1,0 +1,10 @@
+version: '2.1'
+
+services:
+  dronesim:
+    image: dronesim
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 41451:41451

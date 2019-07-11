@@ -1,0 +1,8 @@
+version: '2.1'
+
+services:
+  dronesim:
+    image: dronesim
+    build: .
+    ports:
+      - 41451:41451

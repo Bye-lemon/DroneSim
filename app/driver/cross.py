@@ -1,6 +1,5 @@
 from __future__ import print_function
 import dronesim as airsim
-
 from dronesim.types import *
 
 import msgpackrpc
@@ -14,56 +13,54 @@ import cv2
 import pickle
 
 
-
 class Cross:
-    def __init__(self,client,image,number,motion):
+    def __init__(self, client, image, number, motion, takeHigh):
         self.image = image
         self.client = client
         self.number = number
         self.motion = motion
-        self.turn=1
-        self.error=0
+        self.takeHigh = takeHigh
+        self.turn = 1
+        self.error = 0
 
+    # 读取相机图像
 
-     # 读取相机图像
-
-
-    def getCameraImage(self,image_num=0):
+    def getCameraImage(self, image_num=0):
         responses = self.client.simGetImages([
             airsim.ImageRequest(0, airsim.ImageType.Scene),
             airsim.ImageRequest(0, airsim.ImageType.DepthPerspective, True, False),
             airsim.ImageRequest(3, airsim.ImageType.Scene)])
         return responses[image_num]
 
-
     # 检测数字前进
 
-
-    def saveFrontSense(self,num):
-        #n=self.number.getNumber()
-        n=num
-        if(n!=num):
-            print('number error! getnumber=',n,' num=',num)
-            self.error+=1
-            if self.error>=10:
-                self.error=0
-                self.turn=-self.turn
-                self.motion.flyCmd('backward','fast')
-                time.sleep(10)
+    def saveFrontSense(self, num):
+        # n=self.number.getNumber()
+        n = num
+        if (n != num):
+            print('number error! getnumber=', n, ' num=', num)
+            self.error += 1
+            if self.error >= 10:
+                self.error = 0
+                self.turn = -self.turn
+                self.motion.flyCmd('backward', 'fast')
+                time.sleep(8)
                 self.motion.flyCmd('stop')
                 time.sleep(3)
                 self.moveCircle_N()
             else:
                 self.saveFrontSense(num)
         else:
-            print('number ',num,' right!')
+            print('number ', num, ' right!')
             self.motion.flyCmd('up')
             time.sleep(2)
-            self.motion.flyCmd('forward','fast')
+            self.motion.flyCmd('forward', 'fast')
             time.sleep(3)
             self.motion.flyCmd('stop')
             time.sleep(3)
-
+            self.motion.flyToHeight(self.takeHigh + 3.7, 20)
+            self.motion.flyCmd('stop')
+            time.sleep(2)
 
     # 调节左右对准
 
@@ -97,14 +94,13 @@ class Cross:
 
     # 移动至检测环：前进：8；左移：4；右移：6；
 
-
-    def moveToCircle(self,Turn=8):
-        #飞行
-        if(Turn==8):
+    def moveToCircle(self, Turn=8):
+        # 飞行
+        if (Turn == 8):
             self.motion.flyCmd('forward')
-        elif(Turn==6):
+        elif (Turn == 6):
             self.motion.flyCmd('moveright')
-        elif(Turn==4):
+        elif (Turn == 4):
             self.motion.flyCmd('moveleft')
         while (True):
             # 检测
@@ -124,59 +120,55 @@ class Cross:
                 time.sleep(3)
                 break
 
-
-
-
-    #检测数字位置-调整过环高度
-
+    # 检测数字位置-调整过环高度
 
     def checkNumber(self):
-        UD=0
-        while(True):
-            rawImageF=self.image.getFrontSense()
-            rawImageD=self.image.getDepthImage()
-            rawImageF=rawImageF[:,:,0]
-            rawImageF[np.where(rawImageD==255)]=0
-            rawImageF[np.where(rawImageF<200)]=0
+        UD = 0
+        while (True):
+            rawImageF = self.image.getFrontSense()
+            rawImageD = self.image.getDepthImage()
+            rawImageF = rawImageF[:, :, 0]
+            rawImageF[np.where(rawImageD == 255)] = 0
+            rawImageF[np.where(rawImageF < 200)] = 0
             rawImageD[np.where(rawImageD == 255)] = 0
             up = 0
             [rows, cols] = rawImageD.shape
-            rawImageD= np.delete(rawImageD, np.arange(120, rows), axis=0)
+            rawImageD = np.delete(rawImageD, np.arange(120, rows), axis=0)
             for i in rawImageD.flat:
                 up += i
             if up <= 5100:
-                if UD==1:
+                if UD == 1:
                     self.motion.flyCmd('stop')
                     time.sleep(2)
-                    UD=0
+                    UD = 0
                 self.motion.flyCmd('down')
                 continue
-            U=0
-            W=0
-            D=0
-            rawImage=np.vsplit(rawImageF,5)
-            rawImageU=np.add(rawImage[0],rawImage[1])
-            rawImageU=np.add(rawImageU,rawImage[2])
-            rawImageD=np.delete(rawImage[4],np.arange(0,90),axis=0)
+            U = 0
+            W = 0
+            D = 0
+            rawImage = np.vsplit(rawImageF, 5)
+            rawImageU = np.add(rawImage[0], rawImage[1])
+            rawImageU = np.add(rawImageU, rawImage[2])
+            rawImageD = np.delete(rawImage[4], np.arange(0, 90), axis=0)
             for i in rawImageU.flat:
-                U+=i
+                U += i
             for i in rawImage[3].flat:
-                W+=i
+                W += i
             for i in rawImageD.flat:
-                D+=i
-            print('U =',U,' W =',W,' D =',D)
-            if U>5000:
-                if UD==0:
+                D += i
+            print('U =', U, ' W =', W, ' D =', D)
+            if U > 5000:
+                if UD == 0:
                     self.motion.flyCmd('stop')
                     time.sleep(2)
-                    UD=1
+                    UD = 1
                 self.motion.flyCmd('up')
                 continue
-            if W<200000 or D>5000:
-                if UD==1:
+            if W < 200000 or D > 5000:
+                if UD == 1:
                     self.motion.flyCmd('stop')
                     time.sleep(2)
-                    UD=0
+                    UD = 0
                 self.motion.flyCmd('down')
                 continue
             self.motion.flyCmd('stop')
@@ -220,9 +212,7 @@ class Cross:
             elif ce > 0 and ce <= 2:
                 self.motion.flyCmd('backward')
 
-
     # 正对检测园环所处区间
-
 
     def circleDection(self):
         response = self.getCameraImage(0)
@@ -230,19 +220,19 @@ class Cross:
         img0 = cv2.imdecode(rawImage, cv2.IMREAD_UNCHANGED)
 
         # 处理仅剩红色部分
-        HSV=cv2.cvtColor(img0,cv2.COLOR_BGR2HSV)
-        H,S,V=cv2.split(HSV)
-        LowerRed=np.array([156,43,46])
-        UpperRed=np.array([180,255,255])
-        mask=cv2.inRange(HSV,LowerRed,UpperRed)
-        imga=cv2.bitwise_and(img0,img0,mask=mask)
+        HSV = cv2.cvtColor(img0, cv2.COLOR_BGR2HSV)
+        H, S, V = cv2.split(HSV)
+        LowerRed = np.array([156, 43, 46])
+        UpperRed = np.array([180, 255, 255])
+        mask = cv2.inRange(HSV, LowerRed, UpperRed)
+        imga = cv2.bitwise_and(img0, img0, mask=mask)
 
-        LowerRed_1=np.array([0,43,46])
-        UpperRed_1=np.array([10,255,255])
-        mask1=cv2.inRange(HSV,LowerRed_1,UpperRed_1)
-        imgb=cv2.bitwise_and(img0,img0,mask=mask1)
+        LowerRed_1 = np.array([0, 43, 46])
+        UpperRed_1 = np.array([10, 255, 255])
+        mask1 = cv2.inRange(HSV, LowerRed_1, UpperRed_1)
+        imgb = cv2.bitwise_and(img0, img0, mask=mask1)
 
-        img=cv2.addWeighted(imga,0.5,imgb,0.5,0)
+        img = cv2.addWeighted(imga, 0.5, imgb, 0.5, 0)
 
         '''
         img_dressb = np.where(img0[:, :, 0] > 200) or np.where(img0[:, :, 1] > 200)
@@ -296,7 +286,6 @@ class Cross:
         else:
             return 0
 
-
     # 检测正对扫描环的错误
 
     def getCircle(self):
@@ -310,9 +299,7 @@ class Cross:
         else:
             return Z
 
-
     # 横移调节至正对环
-
 
     def adjustPositionCentripetally(self):
         Z = self.getCircle()
@@ -325,10 +312,10 @@ class Cross:
                 if self.getCircle() != 0:
                     continue
                 break
-            if Z!=N:
+            if Z != N:
                 self.motion.flyCmd('stop')
                 time.sleep(3)
-                Z=N
+                Z = N
             if N == 1:
                 self.motion.flyCmd('moveright')
             elif N == 2:
@@ -338,11 +325,7 @@ class Cross:
             elif N == 4:
                 self.motion.flyCmd('down')
 
-
-
-
     # 通用于检测环近处调节
-
 
     def adjustDrone(self):
         self.adjustPositionHorizontally()
@@ -353,25 +336,23 @@ class Cross:
         self.checkNumber()
         self.adjustPositionHorizontally()
 
-
-    #横移检测环
-
+    # 横移检测环
 
     def moveCircle_N(self):
-        #飞行
-        if(self.turn==1):
+        # 飞行
+        if (self.turn == 1):
             self.motion.flyCmd('moveright')
-            self.turn=1
-        elif(self.turn==-1):
+            self.turn = 1
+        elif (self.turn == -1):
             self.motion.flyCmd('moveleft')
-            self.turn=-1
+            self.turn = -1
         while (True):
             try:
                 R = self.getCircle_R()
             except AttributeError:
                 continue
             else:
-                if R>=23:
+                if R >= 23:
                     self.motion.flyCmd('stop')
                     print('found Circle_R>=23')
                     time.sleep(3)
@@ -381,59 +362,64 @@ class Cross:
                 else:
                     continue
 
-
-# 检测正对扫描环的错误
+    # 检测正对扫描环的错误
 
     def getCircle_R(self):
         # 检测
         response = self.getCameraImage(0)
-        responseD=self.image.getDepthImage()
+        responseD = self.image.getDepthImage()
         rawImage = np.frombuffer(response.image_data_uint8, dtype=np.uint8)
         img0 = cv2.imdecode(rawImage, cv2.IMREAD_UNCHANGED)
-        #进行边界检测
-        responseF=img0.copy()
-        responseF=responseF[:,:,1]
-        responseD[np.where(responseF>200)]=255
-        responseD[np.where(responseD==255)]=0
-        responseD=np.hsplit(responseD,8)
-        D_R=0
-        D_L=0
+        # 进行边界检测
+        responseF = img0.copy()
+        responseF = responseF[:, :, 1]
+        responseD[np.where(responseF > 200)] = 255
+        responseD[np.where(responseD == 255)] = 0
+        responseD = np.hsplit(responseD, 8)
+        D_R = 0
+        D_L = 0
         for i in responseD[7].flat:
-            D_R+= i
+            D_R += i
         for i in responseD[0].flat:
-            D_L+= i
-        if self.turn==1 and D_R>50:
+            D_L += i
+        if self.turn == 1 and D_R > 50:
             self.motion.flyCmd('stop')
             time.sleep(4)
-            print('D-Right=',D_R)
-            self.turn=-1
+            self.motion.flyToHeight(self.takeHigh + 3.8, 20)
+            self.motion.flyCmd('stop')
+            time.sleep(2)
+            print('D-Right=', D_R)
+            self.turn = -1
             self.motion.flyCmd('moveleft')
-            time.sleep(3)
-        elif self.turn==-1 and D_L>50:
+            time.sleep(5)
+        elif self.turn == -1 and D_L > 50:
             self.motion.flyCmd('stop')
             time.sleep(4)
-            print('D-Left=',D_L)
-            self.turn=1
+            self.motion.flyToHeight(self.takeHigh + 3.8, 20)
+            self.motion.flyCmd('stop')
+            time.sleep(2)
+            print('D-Left=', D_L)
+            self.turn = 1
             self.motion.flyCmd('moveright')
-            time.sleep(3)
+            time.sleep(5)
 
-        #开始检测圆环
-        img0=img0[:,120:520,:]
+        # 开始检测圆环
+        img0 = img0[:, 120:520, :]
 
         # 处理仅剩红色部分
-        HSV=cv2.cvtColor(img0,cv2.COLOR_BGR2HSV)
-        H,S,V=cv2.split(HSV)
-        LowerRed=np.array([156,43,46])
-        UpperRed=np.array([180,255,255])
-        mask=cv2.inRange(HSV,LowerRed,UpperRed)
-        imga=cv2.bitwise_and(img0,img0,mask=mask)
+        HSV = cv2.cvtColor(img0, cv2.COLOR_BGR2HSV)
+        H, S, V = cv2.split(HSV)
+        LowerRed = np.array([156, 43, 46])
+        UpperRed = np.array([180, 255, 255])
+        mask = cv2.inRange(HSV, LowerRed, UpperRed)
+        imga = cv2.bitwise_and(img0, img0, mask=mask)
 
-        LowerRed_1=np.array([0,43,46])
-        UpperRed_1=np.array([10,255,255])
-        mask1=cv2.inRange(HSV,LowerRed_1,UpperRed_1)
-        imgb=cv2.bitwise_and(img0,img0,mask=mask1)
+        LowerRed_1 = np.array([0, 43, 46])
+        UpperRed_1 = np.array([10, 255, 255])
+        mask1 = cv2.inRange(HSV, LowerRed_1, UpperRed_1)
+        imgb = cv2.bitwise_and(img0, img0, mask=mask1)
 
-        img=cv2.addWeighted(imga,0.5,imgb,0.5,0)
+        img = cv2.addWeighted(imga, 0.5, imgb, 0.5, 0)
 
         gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)  # 灰度图化
         ret, img0 = cv2.threshold(gray_img, 0, 255, cv2.THRESH_BINARY_INV)  # 黑白二值化
@@ -446,7 +432,7 @@ class Cross:
         img1 = cv2.dilate(img1, kernel, iterations=3)
 
         # 求梯度偏导后得出边缘
-        sobelx = cv2.Sobel(img1, cv2.CV_64F , 1, 0, ksize=3)
+        sobelx = cv2.Sobel(img1, cv2.CV_64F, 1, 0, ksize=3)
         sobely = cv2.Sobel(img1, cv2.CV_64F, 0, 1, ksize=3)
         sobelxy = cv2.Sobel(img1, cv2.CV_64F, 1, 1, ksize=3)
         sobel = np.sqrt(sobelx ** 2 + sobely ** 2 + sobelxy ** 2)
@@ -457,7 +443,7 @@ class Cross:
         img = cv2.medianBlur(img, 5)
 
         circles = cv2.HoughCircles(
-        img, cv2.HOUGH_GRADIENT, 1, 15, param1=100, param2=30, minRadius=10, maxRadius=90)
+            img, cv2.HOUGH_GRADIENT, 1, 15, param1=100, param2=30, minRadius=10, maxRadius=90)
 
         circles = np.uint16(np.around(circles))
         huan_x = 320
@@ -468,5 +454,5 @@ class Cross:
             huan_x = circles[0][0][0]
             huan_y = circles[0][0][1]
         print('-- x =', circles[0][0][0], 'y =',
-            circles[0][0][1], 'r =', circles[0][0][2])
+              circles[0][0][1], 'r =', circles[0][0][2])
         return circles[0][0][2]

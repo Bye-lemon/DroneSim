@@ -4,7 +4,7 @@ from setuptools import setup
 
 setup(
     name='DroneSim',
-    version=0.3,
+    version='0.3.1',
     description=(
         'Yet Another Python API for SJTU Drone Contest.'
     ),
@@ -17,7 +17,7 @@ setup(
         'Yingping Li'
     ],
     license='MIT License',
-    packages=["pack"],
+    packages=["dronesim"],
     platforms=["all"],
     classifiers=[
         'Operating System :: OS Independent',
